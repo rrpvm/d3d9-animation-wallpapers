@@ -69,7 +69,7 @@ bool Loader::createWorkerInstance()
 	int result = -1;
 	HWND progman = FindWindow("Progman", 0);
 	assert(progman && ECRYPT("Can't find a Program wnd class"));
-	SendMessageTimeout(progman, MSG_CREATEWORKERW, 0x04, 0, SMTO_NORMAL, 1000, (PDWORD_PTR)&result);
+	SendMessageTimeout(progman, MSG_CREATEWORKERW, 0x00, 0, SMTO_NORMAL, 1000, (PDWORD_PTR)&result);
 	return result;
 }
 unsigned __int32 Loader::getWorkerHandle()

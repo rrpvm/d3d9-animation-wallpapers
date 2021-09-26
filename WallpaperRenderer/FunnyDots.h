@@ -3,9 +3,7 @@
 #include "Vector2.h"
 #define TIMETOFULLBRIGHT 1.0f//in seconds
 #define FULLBRIGHT 150.f
-
 /*
-
 struct DotStruct {
 	struct ConnectedDots {
 		unsigned int dotsId[2]{ -1,-1 };
