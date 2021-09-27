@@ -2,7 +2,7 @@
 #include <cassert>
 #include "WallpaperController.h"
 #define MSG_CREATEWORKERW 0x052C
-#define LOOPFPS 45
+#define LOOPFPS 60
 class Loader : public WallpaperController
 {
 public:
@@ -19,6 +19,7 @@ private:
 	float elapsedTime{ 0.f };
 
 	unsigned __int32 workerHandle{ NULL };
+	unsigned __int32 workerShell{ NULL };
 	unsigned __int32 overlayHandle{ NULL };
 	int fps{ 0 };
 	

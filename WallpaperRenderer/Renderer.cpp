@@ -31,7 +31,7 @@ bool Renderer::Init(const HWND hWnd, const HWND overlay, const int maxVerticies)
 	d3dprmts.BackBufferCount = 1;
 	d3dprmts.EnableAutoDepthStencil = false;
 	d3dprmts.FullScreen_RefreshRateInHz = 0;
-	d3dprmts.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+	d3dprmts.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 	d3dprmts.MultiSampleQuality = 0;
 	d3dprmts.MultiSampleType = D3DMULTISAMPLE_NONE;
 	d3dprmts.SwapEffect = D3DSWAPEFFECT_DISCARD;
@@ -54,33 +54,13 @@ Renderer::Renderer()
 {
 	this->computeCirclePoints();
 }
+
 void Renderer::Paint(const float eTime)
 {
 	BeginFrame();
-	/*for (auto& data : fndts->getDotList())
-	{
-#ifdef _DEBUG
-		drawCircle(data.pos, fndts->getConnectDistance() / 2, Color(255, 0, 0));
-		std::cout << "\n\n" << Loader::get().getElapsedTime();
-#endif // end _DEBUG
-		//ВНИМАНИЕ:ОСОБЕННОСТИ СПИСКА-он сортирован, поэтому: важен id	
-		if (!data.connectedWith.empty()) {
-
-			for (int i : data.connectedWith)
-			{
-				if (data.id > i) {
-					drawLine(data.pos, fndts->getDotList().at(fndts->getIndex(i)).pos, Color(255, 255, 255, data.alpha));
-				}
-			}
-			drawFilledCircle(data.pos, data.r, Color(230, 230, 230, 230));
-		}
-
-		for (int i : data.wasConnectedWith) {
-
-		}
-	}*/
-	Factory::get().getObject(WPSTARSINTERFACEVERSION)->Paint(eTime, static_cast<void*>(this));
-
+	
+	//Factory::get().getObject(WPSTARSINTERFACEVERSION)->Paint(eTime, static_cast<void*>(this));
+	Factory::get().getObject(FUNNYDOTSITERFACEVERSION)->Paint(eTime, static_cast<void*>(this));
 	EndFrame();
 }
 void Renderer::Update(const float eTime)

@@ -2,13 +2,9 @@
 #include "Loader.h"
 #include "Renderer.h"
 #include "WallpaperStars.h"
+#include "FunnyDots.h"
 Factory::~Factory()
 {
-	/*for (int i = 0; i < factories.size();i++)
-	{
-		auto& pair = factories.at(i);
-		delete pair.first;
-	}*/
 	std::map<std::string, WallpaperController*>::iterator it = factories.begin();
 	while (it != factories.end())
 	{
@@ -20,6 +16,9 @@ Factory::~Factory()
 WallpaperController* Factory::createObject(ControllerType type,  std::string id)
 {
 	WallpaperController* result = nullptr;
+	if (this->factories.count(id) > 0) {
+		return this->factories.find(id)->second;
+	}
 	switch (type)
 	{
 	case Factory::loader: {
@@ -40,13 +39,18 @@ WallpaperController* Factory::createObject(ControllerType type,  std::string id)
 		result = factory;
 		break;
 	}
+	case Factory::connectedDots: {
+		FunnyDots* factory = new FunnyDots(40);//const 50
+		this->factories.insert({ id,factory });
+		result = factory;
+		break;
+	}
 	default:
 		break;
 	}
 	return result;
 }
-
-WallpaperController* Factory::getObject(std::string id)
+WallpaperController* Factory::getObject(const std::string& id)
 {
 	auto result = factories.count(id);
 	if (result) {

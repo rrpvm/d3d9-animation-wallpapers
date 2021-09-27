@@ -2,6 +2,8 @@
 #include "WallpaperController.h"
 #include "Vector2.h"
 #include <vector>
+#define EFFECTTIME 1.0f
+#define SPEEDMULTIPLIERSTARS 0.5f
 class WallpaperStars : public WallpaperController
 {
 public:
@@ -11,6 +13,9 @@ public:
 		float radius{ 0.f };
 		float brightness{ 0.f };
 		float imZ{ 0.f };//условная дальность (глубина)
+		bool hasEffect{ false };
+		float animationCycle{ 0.0f };
+		bool inverseCycle{ false };
 		Star(const Star& vStar) {
 			if (this == &vStar)return;//optimization
 			this->position = vStar.position;
@@ -18,8 +23,11 @@ public:
 			this->radius = vStar.radius;
 			this->brightness = vStar.brightness;
 			this->imZ = vStar.imZ;
+			this->hasEffect = hasEffect;
+			this->animationCycle = vStar.animationCycle;
+			this->inverseCycle = vStar.inverseCycle;
 		}
-		Star(const Vector2& pos, const Vector2& vel, float rad, float bri);
+		Star(const Vector2& pos, const Vector2& vel, float rad, float bri,bool effect);
 	};
 	virtual ~WallpaperStars() override;
 	virtual void Update(const float elapsedTime) override; // logic

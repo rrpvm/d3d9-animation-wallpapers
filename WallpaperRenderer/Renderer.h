@@ -12,16 +12,16 @@ class IDirect3D9;
 class IDirect3DVertexBuffer9;
 class IDirect3DSurface9;
 using namespace WallpaperRenderer;
-class Renderer : public WallpaperController //можно выделить весь рендер d3d9  во вложенный класс, после чего возвращать именно вложенный класс
+class Renderer : public WallpaperController//можно выделить весь рендер d3d9  во вложенный класс, после чего возвращать именно вложенный класс
 {
 public:
 	~Renderer() override;
 	Renderer();
-	bool Init(const HWND hWnd,const HWND overlay, const int maxVerticies);
 	virtual void Paint(const float eTime) override;
 	virtual void Update(const float eTime) override;
 	virtual void Release() override;
 	virtual void Backup() override;//empty function
+	bool Init(const HWND hWnd, const HWND overlay, const int maxVerticies);
 	void BeginFrame();/*set the render setting and etc.*/
 	void EndFrame();/*present buffer, u can switch buffers and render next frame*/
 	__forceinline HBITMAP saveLayout();
@@ -30,7 +30,10 @@ public:
 
 
 
-	
+	/*как бы должны быть приватными,но из-за зависимостей других классов оставлю в паблике.Первое решение,что пришло в голову:
+	 1.наследовать контроллерам рендер, помести функции отрисовки в протектед
+	 2. сделать инициализатор к вершнинным буферам + д3д устройству
+	*/
 	void drawRectangle(const Vector2& position, const Vector2& size, const Color& color);
 	void drawLine(const Vector2& position, const Vector2& to, const Color& color);
 	void drawCircle(const Vector2& position, float r, const Color& color);
@@ -45,7 +48,7 @@ private:
 	HDC appDc{ NULL };
 	HDC memDc{ NULL };
 	HBITMAP backupLayout{ nullptr };
-	Vector2 screenSize{ 0,0 };
+	Vector2 screenSize{ 0,0 };//движок должен содержать в себе размер экрана, а не рендер. Но ,увы,движка нет
 	Vector2 mousePos{ 0,0 };
 	float elapsedTime{ 0 };
 	float aspectRatio{ 0 };

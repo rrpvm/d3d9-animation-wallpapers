@@ -43,15 +43,15 @@ Vector2& Vector2::operator/=(const Vector2& vOther) noexcept
 }
 Vector2 Vector2::operator+(const float vOther)
 {
-    return Vector2(this->x + x, this->y + vOther);
+    return Vector2(this->x + vOther, this->y + vOther);
 }
 Vector2 Vector2::operator-(const float vOther)
 {
-    return Vector2(this->x - x, this->y - vOther);
+    return Vector2(this->x - vOther, this->y - vOther);
 }
 Vector2 Vector2::operator*(const float vOther)
 {
-    return Vector2(this->x * x, this->y * vOther);
+    return Vector2(this->x * vOther, this->y * vOther);
 }
 Vector2 Vector2::operator/(const float vOther)
 {
