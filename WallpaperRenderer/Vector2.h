@@ -25,7 +25,7 @@ public:
 	Vector2& operator/=(const Vector2& vOther) noexcept;
 	Vector2 operator+(const float vOther);
 	Vector2 operator-(const float vOther);
-	Vector2 operator*(const float vOther);
+	Vector2 operator*(const float vOther) const;
 	Vector2 operator/(const float vOther);
 	Vector2& operator+=(const float vOther);
 	Vector2& operator-=(const float vOther);
@@ -40,7 +40,7 @@ public:
 	float operator[](int index) const;
 	float Length2D(const Vector2& pos) const;
 	float Length(const Vector2& pos) const;
-
+	float DotProduct() const;
 private:
 	float x, y;
 };

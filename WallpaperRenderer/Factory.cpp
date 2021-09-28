@@ -40,7 +40,7 @@ WallpaperController* Factory::createObject(ControllerType type,  std::string id)
 		break;
 	}
 	case Factory::connectedDots: {
-		FunnyDots* factory = new FunnyDots(40);//const 50
+		FunnyDots* factory = new FunnyDots(3);//const 50
 		this->factories.insert({ id,factory });
 		result = factory;
 		break;

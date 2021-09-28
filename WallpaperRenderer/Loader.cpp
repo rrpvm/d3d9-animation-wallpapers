@@ -19,6 +19,7 @@ Loader::Loader()
 	createWorkerInstance();
 	getWorkerHandle();
 }
+
 void Loader::Update(const float elapsedTime)
 {
 	Renderer* render = reinterpret_cast<Renderer*>(Factory::get().createObject(Factory::ControllerType::renderer, RENDERERINTERFACEVERSION));
@@ -35,6 +36,7 @@ void Loader::Update(const float elapsedTime)
 		if (GetTickCount64() - lastProc > 1000 / LOOPFPS) {
 			this->elapsedTime = GetTickCount64() - lastProc;
 			lastProc = GetTickCount64();
+			this->currentTime = lastProc;
 			lastFps += this->elapsedTime;
 			if (lastFps >= 1000) {			
 				lastFps = 0;
@@ -59,6 +61,14 @@ void Loader::Paint(const float elapsedTime)
 void Loader::Release()
 {
 
+}
+float Loader::getCurrentTime()
+{
+	return this->currentTime;
+}
+int Loader::getFps()
+{
+	return this->fps;
 }
 bool Loader::createWorkerInstance()
 {

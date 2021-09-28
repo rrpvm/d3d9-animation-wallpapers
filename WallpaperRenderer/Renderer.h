@@ -40,6 +40,9 @@ public:
 	void drawFilledCircle(const Vector2& position, float r, const Color& color);
 	float getAspectRatio();
 	const Vector2& getScreenSize() const;
+	const Vector2& getMousePos() const;
+	const Vector2& getMouseAcceleration() const;
+	const float getMouseRadius();
 private:
 	IDirect3D9* pD3D{ nullptr };
 	IDirect3DDevice9* pDevice{ nullptr };
@@ -50,8 +53,11 @@ private:
 	HBITMAP backupLayout{ nullptr };
 	Vector2 screenSize{ 0,0 };//движок должен содержать в себе размер экрана, а не рендер. Но ,увы,движка нет
 	Vector2 mousePos{ 0,0 };
+	Vector2 mouseV{ 0,0 };//перемещение мыши за последний кадр
 	float elapsedTime{ 0 };
 	float aspectRatio{ 0 };
+	float curcorRadius{ 25.0f };
+	bool renderCursor{ true };
 	std::vector<Vector2>precomputedCirclePoints;
 };
 struct CUSTOMVERTEX

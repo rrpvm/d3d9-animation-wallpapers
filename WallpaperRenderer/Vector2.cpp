@@ -49,7 +49,7 @@ Vector2 Vector2::operator-(const float vOther)
 {
     return Vector2(this->x - vOther, this->y - vOther);
 }
-Vector2 Vector2::operator*(const float vOther)
+Vector2 Vector2::operator*(const float vOther) const
 {
     return Vector2(this->x * vOther, this->y * vOther);
 }
@@ -103,4 +103,9 @@ float Vector2::Length2D(const Vector2& pos) const
 float Vector2::Length(const Vector2& pos) const
 {
     return sqrt(pow(pos.x-this->x,2) + pow(pos.y - this->y,2));
+}
+
+float Vector2::DotProduct() const
+{
+    return x * x + y * y;
 }

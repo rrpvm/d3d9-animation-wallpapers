@@ -40,6 +40,9 @@ bool Renderer::Init(const HWND hWnd, const HWND overlay, const int maxVerticies)
 	if (SUCCEEDED(pD3D->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, FALSE, D3DMULTISAMPLE_2_SAMPLES, NULL))) {
 		d3dprmts.MultiSampleType = D3DMULTISAMPLE_2_SAMPLES;
 	}
+	if (SUCCEEDED(pD3D->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, FALSE, D3DMULTISAMPLE_4_SAMPLES, NULL))) {
+		d3dprmts.MultiSampleType = D3DMULTISAMPLE_4_SAMPLES;
+	}
 	this->pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, overlay, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dprmts, &this->pDevice);
 	assert(this->pDevice && ECRYPT("FAILED to  create a Direct3DD9Device device"));
 	this->pDevice->CreateVertexBuffer(maxVerticies * sizeof(CUSTOMVERTEX), 0, CUSTOMFVF, D3DPOOL_MANAGED, &this->vertexBuffer, nullptr);
@@ -68,6 +71,7 @@ void Renderer::Update(const float eTime)
 	this->elapsedTime = eTime;
 	POINT cursorPos;
 	GetCursorPos(&cursorPos);//cuz we drawing at desktop->rect = full window=> we dont need any transforms
+	this->mouseV = Vector2(cursorPos.x - this->mousePos[0], cursorPos.y - this->mousePos[1]);
 	this->mousePos = Vector2(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
 }
 void Renderer::BeginFrame()
@@ -82,16 +86,20 @@ void Renderer::BeginFrame()
 	pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
 	pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);//how we calculate src blend
 	pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);//(destination)blend
-	pDevice->SetRenderState(D3DRS_LASTPIXEL, TRUE);
+//	pDevice->SetRenderState(D3DRS_LASTPIXEL, TRUE);
 	pDevice->SetRenderState(D3DRS_DIFFUSEMATERIALSOURCE, D3DMCS_COLOR1);
 	this->pDevice->SetStreamSource(NULL, nullptr, NULL, NULL);
 	this->pDevice->SetFVF(CUSTOMFVF);
 	this->pDevice->SetTexture(NULL, nullptr);
-	this->pDevice->Clear(0L, 0, D3DCLEAR_TARGET, 0, 0, 0);
+	//this->pDevice->Clear(0L, 0, D3DCLEAR_TARGET, 0, 0, 0);
+	this->pDevice->Clear(0L, 0, D3DCLEAR_TARGET, Color(255,255,255).convert(), 0, 0);
 	this->pDevice->BeginScene();
 }
 void Renderer::EndFrame()
 {
+	if (this->renderCursor) {
+		this->drawCircle(this->mousePos, this->curcorRadius, Color(0, 255, 0));
+	}
 	this->pDevice->EndScene();
 	this->pDevice->Present(0, 0, 0, 0);
 }
@@ -202,6 +210,18 @@ float Renderer::getAspectRatio()
 const Vector2& Renderer::getScreenSize() const
 {
 	return this->screenSize;
+}
+const Vector2& Renderer::getMousePos() const
+{
+	return this->mousePos;
+}
+const Vector2& Renderer::getMouseAcceleration() const
+{
+	return this->mouseV;
+}
+const float Renderer::getMouseRadius()
+{
+	return this->curcorRadius;
 }
 void Renderer::setDensity(const unsigned int nDensity)
 {

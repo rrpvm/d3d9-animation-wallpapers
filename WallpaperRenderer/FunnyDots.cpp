@@ -33,57 +33,70 @@ FunnyDots::~FunnyDots()
 void FunnyDots::Update(const float elapsedTime)
 {
 	Renderer* render = reinterpret_cast<Renderer*>(Factory::get().getObject(RENDERERINTERFACEVERSION));
+	Loader* loader = reinterpret_cast<Loader*>(Factory::get().getObject(LOADERINTERFACEVERSION));
 	const Vector2& screenSize = render->getScreenSize();
-	//std::qsort(objectsList.data(), objectsList.size(),sizeof(DotStruct), FunnyDots::compareDotsForSort);
 	for (int i = 0; i < objectsList.size(); i++)
 	{
 		DotStruct* object = objectsList.at(i);
-		//float accvX, accvY;
-		//accvX = static_cast<float>(rand() % 250) / 1000.f / render->getAspectRatio();
-		//accvY = static_cast<float>(rand() % 150) / 1000.f;//0.150
-		//object->velocity.getX() += object->velocity.getX() > 0 ? accvX : -accvX;
-		//object->velocity.getY() += object->velocity.getY() > 0 ? accvY : -accvY;
 		Vector2 nVelocity = object->velocity * (elapsedTime * FUNNYDOTSSPEEDMULTIPLIER / LOOPFPS);
+		if (object->shiftVelocity)nVelocity = Vector2(0, 0);
 		object->position += nVelocity + object->forceVelocity;
-	//	object->forceVelocity = Vector2(0, 0);
-		/*позиция- центр -> левый край = pos - rad/2*/
-		if (object->position[0] - object->radius / 2 <= 0.0f || object->position[0] + object->radius / 2 >= screenSize[0]) {
-			object->negateVelocity(true);
-		/*	const float nVelocityX = (float)(rand() % 5 + 3);
-			if (object->velocity.getX() > 0) {//=>столкновение с левым краем
-				object->velocity.getX() = nVelocityX;
-				object->forceVelocity = Vector2(1, 0);
-			}
-			else {
-				object->velocity.getX() = -nVelocityX;
-				object->forceVelocity = Vector2(-1, 0);
-			}*/
-		}
-		if (object->position[1] - object->radius / 2 <= 0 || object->position[1] + object->radius / 2 >= screenSize[1]) {
-			object->negateVelocity(false);
-			/*const float nVelocityY = (float)(rand() % 5 + 3);
-			if (object->velocity.getY() > 0) {//=>столкновение с левым краем
-				object->velocity.getY() = nVelocityY;
-				object->forceVelocity = Vector2(1, 0);
-			}
-			else {
-				object->velocity.getY() = -nVelocityY;
-				object->forceVelocity = Vector2(-1, 0);
-			}*/
-		}
-		Utilities::clamp(object->position.getX(), -object->radius / 2, screenSize[0] + object->radius / 2);
-		Utilities::clamp(object->position.getY(), -object->radius / 2, screenSize[1] + object->radius / 2);
-		object->connections.clear();
-		for (int j = i + 1; j < objectsList.size(); j++)
+		object->shiftVelocity = false;
+		object->forceVelocity = Vector2(0, 0);
+		clipDotsPosition(object, screenSize);
+		for (int j = i + 1; j < objectsList.size(); j++)//add new connections to the dot
 		{
 			DotStruct* innerObject = objectsList.at(j);
-			if ((object->position + object->radius / 2).Length(innerObject->position + innerObject->radius / 2) <= this->CONNECTDISTANCE) {
-				DotStruct::ConnectedDots str;
+			if (!object->isConnectedWith(j) && (object->position + object->radius / 2).Length(innerObject->position + innerObject->radius / 2) <= this->CONNECTDISTANCE) {
+				DotStruct::ConnectedDots str; 
 				str.dot = j;
 				str.alpha = 255.0f;
+				str.animationCycle = 0.0f;
+				str.appendTime = loader->getCurrentTime();
 				object->connections.push_back(str);
 			}
 			//if()
+		}
+		for (int x = 0; x < object->connections.size(); x++)//clear old connections with the dot + animate new connections(можно засунуть в цикл выше, но так тяжело понять код
+		{
+			auto& connection = object->connections.at(x);
+			DotStruct* dtsr = this->objectsList.at(connection.dot);
+			//если мы уже не соединены с точкой - анимация исчезания
+			if ((object->position + object->radius / 2).Length(dtsr->position + dtsr->radius / 2) > this->CONNECTDISTANCE) {
+				if (connection.animationCycle < 1.0f) {
+					/*animate*/
+					connection.animationCycle += (elapsedTime / 1000.f) / TIMETOFULLBRIGHT;
+					Utilities::clamp(connection.animationCycle, 0.0f, 1.01f);
+					connection.alpha = FULLBRIGHT * (1.0f - connection.animationCycle);
+					continue;
+				}
+				else object->connections.erase(object->connections.begin() + x);
+			}
+			else {
+				//анимация проигрывается единожды-> нужно знать время появления
+				if (loader->getCurrentTime() - connection.appendTime <= TIMETOFULLBRIGHT * 1000.0f && connection.animationCycle < 1.0f) {
+					connection.animationCycle += (elapsedTime / 1000.f) / TIMETOFULLBRIGHT;
+					Utilities::clamp(connection.animationCycle, 0.0f, 1.01f);
+					connection.alpha = FULLBRIGHT * connection.animationCycle;
+				}
+				else {
+					/*если мы отработали анимацию появления - сброс*/
+					connection.animationCycle = 0.0f;
+					connection.alpha = FULLBRIGHT;
+				}
+			}
+		}
+		if (this->mouseInteractive && object->position.Length(render->getMousePos()) < render->getMouseRadius()) {
+			if (render->getMouseAcceleration().DotProduct() == 0) {
+				object->position -= object->velocity/2.0f;//обратное направление	
+				object->negateVelocity();
+				object->negateVelocity(false);
+				object->shiftVelocity = true;
+			}
+			else {
+				object->position += (render->getMouseAcceleration()*1.25f);
+				object->shiftVelocity = true;
+			}
 		}
 	}
 }
@@ -97,9 +110,12 @@ void FunnyDots::Paint(const float elapsedTime, void* pRender)
 	{
 		for (auto& v : object->connections)
 		{
-			render->drawLine(object->position, this->objectsList.at(v.dot)->position, Color(88.f, 88.f, 88.f, 88.f));
+			//render->drawLine(object->position, this->objectsList.at(v.dot)->position, Color(111.f, 111.f, 111.f, 111.f));
+			render->drawLine(object->position, this->objectsList.at(v.dot)->position, Color(0.f, 0.f, 0.f, v.alpha));
 		}
-		if(object->connections.size()>0 || isDotConnected(object->id))render->drawFilledCircle(object->position, object->radius, Color(200, 200, 200, object->alpha));	
+		//if(object->connections.size()>0 || isDotConnected(object->id))render->drawFilledCircle(object->position, object->radius, Color(210, 210, 210, object->alpha));	
+		if(object->connections.size()>0 || isDotConnected(object->id))render->drawFilledCircle(object->position, object->radius, Color(0, 0, 0, object->alpha));
+		else render->drawFilledCircle(object->position, object->radius, Color(100.f, 100.f, 100.f, object->alpha));
 	}
 }
 void FunnyDots::Release()
@@ -109,10 +125,12 @@ void FunnyDots::Release()
 	}
 	this->objectsList.clear();
 }
+/*
 const std::vector<DotStruct*>& FunnyDots::getObjectsList()
 {
 	return objectsList;
-}
+}*/
+/*
 const unsigned short FunnyDots::getObjectCount()
 {
 	return this->MAXDOTS;
@@ -122,7 +140,7 @@ int FunnyDots::compareDotsForSort(const void* p1, const void* p2)
 	DotStruct* ds1 = (DotStruct*)(p1);
 	DotStruct* ds2 = (DotStruct*)(p2);
 	return ds1->position.Length2D(Vector2(0, 0)) - ds2->position.Length2D(Vector2(0, 0));
-}
+}*/
 bool FunnyDots::isDotConnected(int id)
 {
 	for (const auto& object : objectsList)
@@ -133,6 +151,29 @@ bool FunnyDots::isDotConnected(int id)
 		}		
 	}
 	return false;
+}
+void FunnyDots::clipDotsPosition(DotStruct* object, const Vector2& screenSize)
+{
+	if (object->position[1] <= object->radius / 2.0f) {
+		object->negateVelocity(false);
+		object->forceVelocity.getY() += (object->radius / 2.0f) - object->position[1];
+	}
+	else if (object->position[1] >= screenSize[1] + object->radius / 2.0f)
+	{
+		object->negateVelocity(false);
+		object->forceVelocity.getY() -= object->position[1] - screenSize[1] - object->radius / 2.0f;
+	}
+	if (object->position[0] <= object->radius / 2.0f) {
+		object->negateVelocity();
+		object->forceVelocity.getX() += (object->radius / 2.0f) - object->position[0];
+	}
+	else if (object->position[0] >= screenSize[0] + object->radius / 2.0f)
+	{
+		object->negateVelocity();
+		object->forceVelocity.getX() -= object->position[0] - screenSize[0]-object->radius/2.0f;
+	}
+	Utilities::clamp(object->position.getX(), -object->radius / 2.0f, screenSize[0] + object->radius/2.0f);
+	Utilities::clamp(object->position.getY(), -object->radius / 2.0f, screenSize[1] + object->radius / 2.0f);
 }
 void DotStruct::negateVelocity(bool byX)
 {
@@ -146,6 +187,7 @@ DotStruct::DotStruct()
 	this->radius = 4.f;
 	this->alpha = 255.0f;
 	this->forceVelocity = Vector2(0,0);
+	this->shiftVelocity = false;
 	this->connections.clear();
 }
 DotStruct::DotStruct(const DotStruct& vOther)
@@ -156,6 +198,7 @@ DotStruct::DotStruct(const DotStruct& vOther)
 	this->alpha = vOther.alpha;
 	this->forceVelocity = vOther.forceVelocity;
 	this->connections = vOther.connections;
+	this->shiftVelocity = vOther.shiftVelocity;
 }
 DotStruct::DotStruct(int id, const Vector2& position, float radius, float alpha)
 {
@@ -165,4 +208,12 @@ DotStruct::DotStruct(int id, const Vector2& position, float radius, float alpha)
 	this->alpha = alpha;
 	this->forceVelocity = Vector2(0, 0);
 	this->connections.clear();
+}
+bool DotStruct::isConnectedWith(int i)
+{
+	for (const auto& connection : connections)
+	{
+		if (connection.dot == i)return true;
+	}
+	return false;
 }

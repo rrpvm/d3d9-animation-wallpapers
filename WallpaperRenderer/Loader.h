@@ -12,11 +12,14 @@ public:
 	virtual void Paint(const float elapsedTime = 0) override;//not used
 	virtual void Release() override;
 	virtual void Backup()override {};
+	float getCurrentTime();
+	int getFps();
 private:
 	__forceinline bool createWorkerInstance();//can be void
 	__forceinline unsigned __int32 getWorkerHandle();//can be void
 	__forceinline void createOverlay();
 	float elapsedTime{ 0.f };
+	float currentTime{ 0.0f };
 
 	unsigned __int32 workerHandle{ NULL };
 	unsigned __int32 workerShell{ NULL };
