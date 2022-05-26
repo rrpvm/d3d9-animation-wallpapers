@@ -1,5 +1,4 @@
 # WallpaperAnimator
-## THIS APP IS NOT FINISHED<br/>
 ### description:<br/>
 * draw's dx9 graphic into your desktop wallpaper ( WorkerW handle -> see the MS SpyC++)<br/>
 * can draw images (dx9 function)<br/>
